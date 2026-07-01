@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "packages/shared/src",
+    "packages/providers/src",
+    "packages/datasets/src",
+    "packages/scoring/src",
+    "packages/evaluators/src",
+    "packages/benchmark-engine/src",
+    "packages/reporting/src",
+    "benchmarks/src",
+    "apps/cli/src",
+    "scripts"
+  ],
+  "exclude": ["**/node_modules", "**/dist", "**/*.test.ts"]
+}

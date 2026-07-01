@@ -1,0 +1,219 @@
+// EvalForge database schema.
+//
+// Design goals:
+//  * Every run is fully reproducible — we persist config, environment, seed, the
+//    exact request, params, and prompt version alongside every graded result.
+//  * Fast leaderboards — pre-aggregated MetricRecord rows are indexed by
+//    (metric, model, benchmark) so ranking is a single indexed scan.
+//  * Faithful to @evalforge/shared — JSON columns hold the canonical domain
+//    objects (RunConfig, GenerateRequest, GradeResult…) so nothing is lost.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Identity ─────────────────────────────────────────────────────────────────
+
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  name        String?
+  createdAt   DateTime     @default(now())
+  runs        Run[]
+  experiments Experiment[]
+
+  @@map("users")
+}
+
+// ── Model catalog ────────────────────────────────────────────────────────────
+
+model Provider {
+  id          String  @id @default(cuid())
+  name        String  @unique // "openai" | "anthropic" | ...
+  displayName String?
+  models      Model[]
+
+  @@map("providers")
+}
+
+model Model {
+  id             String   @id @default(cuid())
+  provider       Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  providerId     String
+  name           String // e.g. "gpt-4o"
+  displayName    String?
+  contextWindow  Int?
+  maxOutputTokens Int?
+  inputPerMTok   Float?
+  outputPerMTok  Float?
+  modalities     String[] @default([])
+  createdAt      DateTime @default(now())
+
+  @@unique([providerId, name])
+  @@map("models")
+}
+
+// ── Benchmarks & datasets ────────────────────────────────────────────────────
+
+model Benchmark {
+  id            String       @id // stable slug, e.g. "gsm8k"
+  name          String
+  version       String
+  category      String
+  promptVersion String
+  description   String?
+  metrics       String[]     @default([])
+  datasetId     String?
+  dataset       Dataset?     @relation(fields: [datasetId], references: [id])
+  createdAt     DateTime     @default(now())
+  results       TaskResult[]
+
+  @@map("benchmarks")
+}
+
+model Dataset {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  name        String
+  version     String
+  contentHash String
+  description String?
+  source      Json? // DatasetSource
+  createdAt   DateTime      @default(now())
+  items       DatasetItem[]
+  benchmarks  Benchmark[]
+
+  @@map("datasets")
+}
+
+model DatasetItem {
+  id        String  @id @default(cuid())
+  dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  datasetId String
+  taskId    String
+  input     Json
+  expected  String?
+  choices   String[] @default([])
+  reference String?
+  metadata  Json?
+
+  @@unique([datasetId, taskId])
+  @@map("dataset_items")
+}
+
+// ── Experiments & runs ───────────────────────────────────────────────────────
+
+model Experiment {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      String?
+  createdAt   DateTime @default(now())
+  runs        Run[]
+
+  @@map("experiments")
+}
+
+model Run {
+  id           String         @id // runId from the engine
+  status       String // RunStatus
+  config       Json // RunConfig — the reproducible input
+  environment  Json // RunEnvironment (version, git commit, node, platform)
+  summary      Json? // RunSummary once complete
+  seed         Int?
+  experiment   Experiment?    @relation(fields: [experimentId], references: [id])
+  experimentId String?
+  user         User?          @relation(fields: [userId], references: [id])
+  userId       String?
+  createdAt    DateTime       @default(now())
+  finishedAt   DateTime?
+  results      TaskResult[]
+  metrics      MetricRecord[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("runs")
+}
+
+// ── Results & metrics ────────────────────────────────────────────────────────
+
+model TaskResult {
+  id            String    @id @default(cuid())
+  run           Run       @relation(fields: [runId], references: [id], onDelete: Cascade)
+  runId         String
+  benchmark     Benchmark @relation(fields: [benchmarkId], references: [id])
+  benchmarkId   String
+  taskId        String
+  provider      String
+  model         String
+  params        Json? // SamplingParams (temperature, seed, ...)
+  promptVersion String
+  repeatIndex   Int       @default(0)
+
+  request Json // GenerateRequest snapshot — enables byte-for-byte replay
+  output  Json // ParsedOutput
+
+  // Grade
+  score     Float
+  passed    Boolean
+  label     String?
+  rationale String?
+
+  // Telemetry
+  promptTokens     Int?
+  completionTokens Int?
+  totalTokens      Int?
+  costUsd          Float?
+  latencyMs        Int
+  attempts         Int      @default(1)
+  cached           Boolean  @default(false)
+  error            Json?
+  createdAt        DateTime @default(now())
+
+  @@unique([runId, benchmarkId, model, taskId, repeatIndex])
+  @@index([runId])
+  @@index([benchmarkId, model])
+  @@index([provider, model])
+  @@map("task_results")
+}
+
+// Pre-aggregated metric for fast leaderboards and score-history charts.
+model MetricRecord {
+  id          String   @id @default(cuid())
+  run         Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  runId       String
+  provider    String
+  model       String
+  benchmarkId String?
+  category    String?
+  metric      String
+  value       Float
+  ciLow       Float?
+  ciHigh      Float?
+  n           Int
+  createdAt   DateTime @default(now())
+
+  @@index([metric, value])
+  @@index([model, benchmarkId])
+  @@index([provider, metric])
+  @@map("metric_records")
+}
+
+// Optional arena-style Elo ratings (stretch: pairwise/tournament leaderboards).
+model EloRating {
+  id        String   @id @default(cuid())
+  provider  String
+  model     String
+  rating    Float    @default(1000)
+  games     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, model])
+  @@map("elo_ratings")
+}

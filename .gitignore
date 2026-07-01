@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Data / caches
+.cache/
+.evalforge/
+coverage/
+*.log
+runs/
+tmp/
+.DS_Store
+
+# Prisma
+packages/db/prisma/*.db
+packages/db/prisma/migrations/dev.db*
+
+# Editor
+.idea/
+.vscode/*
+!.vscode/extensions.json

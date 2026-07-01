@@ -1,0 +1,21 @@
+{
+  "name": "@evalforge/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "evalforge": "./dist/main.js" },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "tsup src/main.ts --format esm --clean",
+    "dev": "tsx src/main.ts",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@evalforge/shared": "*",
+    "@evalforge/benchmark-engine": "*",
+    "@evalforge/benchmarks": "*",
+    "@evalforge/providers": "*",
+    "@evalforge/evaluators": "*",
+    "@evalforge/reporting": "*"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "evalforge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EvalForge — a production-grade, reproducible benchmarking and evaluation platform for LLMs.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*",
+    "benchmarks",
+    "apps/*"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:all": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --ext .ts,.tsx",
+    "build": "npm run build --workspaces --if-present",
+    "cli": "tsx apps/cli/src/main.ts",
+    "seed": "tsx scripts/seed.ts",
+    "db:generate": "prisma generate --schema packages/db/prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema packages/db/prisma/schema.prisma",
+    "dev:api": "npm --workspace @evalforge/api run dev",
+    "dev:web": "npm --workspace @evalforge/web run dev"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "zod": "^3.24.1"
+  }
+}
