@@ -52,12 +52,12 @@ const CAPABILITIES: ProviderCapabilities = {
 
 /** The simulation hint a benchmark may attach to `request.metadata.simulation`. */
 interface Simulation {
-  /** The gold answer (choice letter, number, code, or text). */
+  /** The gold answer (choice letter, number, code, JSON, or text). */
   answer?: string;
   /** Choice labels for multiple-choice tasks. */
   choices?: string[];
   /** How to shape the output. Inferred when omitted. */
-  style?: "choice" | "number" | "code" | "text";
+  style?: "choice" | "number" | "code" | "json" | "text";
 }
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -165,6 +165,13 @@ class MockProvider implements ModelProvider {
           finishReason: "stop",
         };
       }
+      case "json": {
+        if (beCorrect && sim.answer) {
+          return { text: "```json\n" + sim.answer + "\n```", finishReason: "stop" };
+        }
+        // Schema-valid but wrong — exercises partial credit in composite judges.
+        return { text: '```json\n{"arguments":{},"name":"unknown_tool"}\n```', finishReason: "stop" };
+      }
       case "text":
       default: {
         if (beCorrect && sim.answer) return { text: sim.answer, finishReason: "stop" };
@@ -189,7 +196,13 @@ function readSimulation(request: GenerateRequest): Simulation {
   const sim: Simulation = {};
   if (typeof obj.answer === "string") sim.answer = obj.answer;
   if (Array.isArray(obj.choices)) sim.choices = obj.choices.filter((c): c is string => typeof c === "string");
-  if (obj.style === "choice" || obj.style === "number" || obj.style === "code" || obj.style === "text") {
+  if (
+    obj.style === "choice" ||
+    obj.style === "number" ||
+    obj.style === "code" ||
+    obj.style === "json" ||
+    obj.style === "text"
+  ) {
     sim.style = obj.style;
   }
   return sim;
@@ -198,6 +211,7 @@ function readSimulation(request: GenerateRequest): Simulation {
 function inferStyle(sim: Simulation): NonNullable<Simulation["style"]> {
   if (sim.choices && sim.choices.length > 0) return "choice";
   if (sim.answer !== undefined && /^-?\d+(\.\d+)?$/.test(sim.answer.trim())) return "number";
+  if (sim.answer !== undefined && /^[[{]/.test(sim.answer.trim())) return "json";
   return "text";
 }
 

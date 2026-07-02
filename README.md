@@ -29,8 +29,10 @@ or dataset format takes exactly one new file.** See [`docs/ARCHITECTURE.md`](doc
 - **7 model providers** behind one `fetch`-based interface — OpenAI, Anthropic,
   Google Gemini, OpenRouter, Groq, Ollama (local), plus a deterministic **mock** for
   offline runs. No vendor SDKs.
-- **Benchmark suites** across coding, math, reasoning, and knowledge — HumanEval,
-  GSM8K, MMLU, ARC, TruthfulQA — each one file, self-registering, with sample data.
+- **Benchmark suites** across coding, math, reasoning, knowledge, tool use, and
+  long context — HumanEval, GSM8K, MMLU, ARC, TruthfulQA, function-calling, and
+  needle-in-a-haystack retrieval (10k–500k tokens) — each one file, self-registering,
+  with sample data.
 - **Pluggable judges** — exact / regex / numeric / includes / choice / JSON-schema,
   embedding similarity, LLM-as-judge (model-agnostic), and sandboxed code execution.
 - **A real engine** — sequential or parallel execution, retries with backoff,

@@ -12,9 +12,19 @@ import { arc } from "./arc.js";
 import { truthfulqa } from "./truthfulqa.js";
 import { gsm8k } from "./gsm8k.js";
 import { humaneval } from "./humaneval.js";
+import { tooluse } from "./tooluse.js";
+import { longcontext } from "./longcontext.js";
 
 /** All built-in benchmarks, in a stable display order. */
-export const BUILTIN_BENCHMARKS: Benchmark[] = [gsm8k, mmlu, arc, truthfulqa, humaneval];
+export const BUILTIN_BENCHMARKS: Benchmark[] = [
+  gsm8k,
+  mmlu,
+  arc,
+  truthfulqa,
+  humaneval,
+  tooluse,
+  longcontext,
+];
 
 let registered = false;
 
