@@ -6,6 +6,13 @@ The project is built bottom-up: contracts first, then leaf packages, then the en
 then the surfaces (CLI/API/web), then hardening. Each milestone is independently
 useful and testable.
 
+> **Current status.** M0–M9 are implemented and verified: the full offline core
+> (providers, scoring, datasets, evaluators, engine, benchmarks, reporting), the
+> CLI, the Fastify REST API, the Next.js dashboard, and the Prisma/Postgres
+> `RunStore` all exist and pass 100+ unit/integration tests plus a clean strict-
+> TypeScript build. M10 (Playwright e2e, load testing) is in progress; the stretch
+> goals below are the roadmap beyond 1.0.
+
 ---
 
 ## M0 — Foundation ✅

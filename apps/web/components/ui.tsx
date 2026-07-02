@@ -43,7 +43,7 @@ export function Table({ children }: { children: ReactNode }) {
   );
 }
 
-export function Th({ children, right }: { children: ReactNode; right?: boolean }) {
+export function Th({ children, right }: { children?: ReactNode; right?: boolean }) {
   return (
     <th className={cn("border-b px-3 py-2 font-medium text-muted-foreground", right ? "text-right" : "text-left")}>
       {children}
@@ -51,7 +51,7 @@ export function Th({ children, right }: { children: ReactNode; right?: boolean }
   );
 }
 
-export function Td({ children, right, className }: { children: ReactNode; right?: boolean; className?: string }) {
+export function Td({ children, right, className }: { children?: ReactNode; right?: boolean; className?: string }) {
   return <td className={cn("border-b px-3 py-2", right ? "text-right tabular-nums" : "text-left", className)}>{children}</td>;
 }
 
