@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+**/dist
+**/.next
+.evalforge
+.git
+.github
+coverage
+*.log
+**/*.tsbuildinfo
+.env
+.env.*
+!.env.example

@@ -1,21 +1,24 @@
 {
-  "name": "@evalforge/benchmark-engine",
+  "name": "@evalforge/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
-  "types": "./src/index.ts",
-  "exports": { ".": "./src/index.ts" },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
     "test": "vitest run"
   },
   "dependencies": {
     "@evalforge/shared": "*",
+    "@evalforge/benchmark-engine": "*",
+    "@evalforge/benchmarks": "*",
     "@evalforge/providers": "*",
     "@evalforge/evaluators": "*",
-    "@evalforge/datasets": "*",
-    "@evalforge/scoring": "*"
+    "@evalforge/reporting": "*",
+    "@fastify/cors": "^10.0.2",
+    "fastify": "^5.2.1",
+    "zod": "^3.24.1"
   }
 }

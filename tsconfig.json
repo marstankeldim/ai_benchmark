@@ -13,6 +13,7 @@
     "packages/reporting/src",
     "benchmarks/src",
     "apps/cli/src",
+    "apps/api/src",
     "scripts"
   ],
   "exclude": ["**/node_modules", "**/dist", "**/*.test.ts"]

@@ -66,8 +66,11 @@ export interface TaskResult {
   createdAt: Timestamp;
 }
 
-/** Per-metric aggregate with uncertainty. */
-export type MetricAggregate = Record<MetricName, number>;
+/**
+ * Per-metric aggregate. A benchmark reports only the metrics it computes, so this
+ * is a partial map — readers should treat a missing metric as "not measured".
+ */
+export type MetricAggregate = Partial<Record<MetricName, number>>;
 
 export interface ModelBenchmarkSummary {
   benchmarkId: BenchmarkId;

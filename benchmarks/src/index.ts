@@ -1,0 +1,25 @@
+/**
+ * @evalforge/benchmarks — concrete benchmark definitions and their sample data.
+ *
+ * Importing this package registers every built-in benchmark (GSM8K, MMLU, ARC,
+ * TruthfulQA, HumanEval) into the shared `benchmarkRegistry`. Each benchmark is a
+ * single self-contained file; add one by writing a new file and appending it to
+ * `registry.ts`.
+ */
+
+export * from "./lib/parse.js";
+export * from "./lib/mcq.js";
+export * from "./lib/define.js";
+export * from "./registry.js";
+
+export { gsm8k } from "./gsm8k.js";
+export { mmlu } from "./mmlu.js";
+export { arc } from "./arc.js";
+export { truthfulqa } from "./truthfulqa.js";
+export { humaneval } from "./humaneval.js";
+
+export { GSM8K_TASKS } from "./data/gsm8k.js";
+export { MMLU_TASKS } from "./data/mmlu.js";
+export { ARC_TASKS } from "./data/arc.js";
+export { TRUTHFULQA_TASKS } from "./data/truthfulqa.js";
+export { HUMANEVAL_TASKS } from "./data/humaneval.js";

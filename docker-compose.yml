@@ -1,0 +1,72 @@
+# Local development stack for EvalForge.
+#
+#   docker compose up postgres redis      # just the datastores
+#   docker compose up --build             # full stack (api + web + datastores)
+#
+# The engine also runs with no datastores at all: without DATABASE_URL/REDIS_URL
+# it falls back to a filesystem run store and in-process execution.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: evalforge
+      POSTGRES_PASSWORD: evalforge
+      POSTGRES_DB: evalforge
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evalforge"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://evalforge:evalforge@postgres:5432/evalforge?schema=public
+      REDIS_URL: redis://redis:6379
+      API_HOST: 0.0.0.0
+      API_PORT: "4000"
+      EVALFORGE_RUNS_DIR: /data/runs
+    ports:
+      - "4000:4000"
+    volumes:
+      - runsdata:/data/runs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    profiles:
+      - web # `docker compose --profile web up` to include the dashboard
+
+volumes:
+  pgdata:
+  runsdata:
